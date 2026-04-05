@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ひらがな変換辞書検索</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 1.5em;
+            text-align: center;
+        }
+        .rule-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .rule {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+        .rule input {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2em;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .btn {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.2s;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn-add {
+            background-color: #28a745;
+            margin-bottom: 20px;
+        }
+        .btn-add:hover {
+            background-color: #218838;
+        }
+        .btn-remove {
+            background-color: #dc3545;
+            padding: 8px 12px;
+            font-size: 0.9em;
+        }
+        .btn-remove:hover {
+            background-color: #c82333;
+        }
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #status {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        #results {
+            background: #f1f1f1;
+            padding: 15px;
+            border-radius: 4px;
+            line-height: 1.8;
+            max-height: 500px;
+            overflow-y: auto;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ひらがな変換辞書検索</h1>
+    
+    <div id="status">辞書ファイルを読み込んでいます...</div>
+
+    <div class="rule-container" id="rule-container">
+        <div class="rule">
+            <input type="text" maxlength="1" class="before-char" placeholder="あ">
+            <span>→</span>
+            <input type="text" maxlength="1" class="after-char" placeholder="か">
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-add" onclick="addRule()">変換を追加</button><br>
+        <button class="btn" onclick="searchWords()">検索</button>
+    </div>
+
+    <h2>検索結果</h2>
+    <div id="results">ここに結果が表示されます</div>
+</div>
+
+<script>
+    let dictionaryWords = [];
+    let dictionarySet = new Set();
+    let isDictLoaded = false;
+
+    // 辞書ファイルの読み込み処理
+    async function loadDictionary() {
+        try {
+            // 同じ階層にある buta014.dic を読み込む
+            const response = await fetch('buta014.dic');
+            if (!response.ok) throw new Error('Network response was not ok');
+            const text = await response.text();
+            
+            // 改行で分割し、空行を除去して配列とSetを作成
+            dictionaryWords = text.split(/\r?\n/).map(word => word.trim()).filter(word => word.length > 0);
+            dictionarySet = new Set(dictionaryWords);
+            
+            isDictLoaded = true;
+            document.getElementById('status').innerText = `辞書の読み込みが完了しました（収録単語数: ${dictionaryWords.length.toLocaleString()}語）`;
+            document.getElementById('status').style.color = '#28a745';
+        } catch (error) {
+            document.getElementById('status').innerText = '辞書ファイルの読み込みに失敗しました。「buta014.dic」が同じフォルダにあるか確認してください。ローカルで開いている場合は、GitHub Pages等のサーバー環境で実行してください。';
+            document.getElementById('status').style.color = '#dc3545';
+            console.error('Error loading dictionary:', error);
+        }
+    }
+
+    // ページ読み込み時に辞書を取得
+    window.onload = loadDictionary;
+
+    // 「変換を追加」ボタンの処理
+    function addRule() {
+        const container = document.getElementById('rule-container');
+        const ruleDiv = document.createElement('div');
+        ruleDiv.className = 'rule';
+        ruleDiv.innerHTML = `
+            <input type="text" maxlength="1" class="before-char" placeholder="さ">
+            <span>→</span>
+            <input type="text" maxlength="1" class="after-char" placeholder="た">
+            <button class="btn btn-remove" onclick="this.parentElement.remove()">削除</button>
+        `;
+        container.appendChild(ruleDiv);
+    }
+
+    // 「検索」ボタンの処理
+    function searchWords() {
+        if (!isDictLoaded) {
+            alert('辞書データがまだ読み込まれていないか、読み込みに失敗しています。');
+            return;
+        }
+
+        const ruleElements = document.querySelectorAll('.rule');
+        const rules = [];
+
+        // 入力された変換ルールを取得
+        ruleElements.forEach(el => {
+            const before = el.querySelector('.before-char').value.trim();
+            const after = el.querySelector('.after-char').value.trim();
+            if (before && after) {
+                rules.push({ before, after });
+            }
+        });
+
+        if (rules.length === 0) {
+            alert('変換条件を少なくとも1つ入力してください。');
+            return;
+        }
+
+        const results = [];
+
+        // 辞書内の全単語に対して処理を実行
+        for (const word of dictionaryWords) {
+            // 条件1: 指定された「変換前」の文字が、単語内に【すべて】含まれているか確認
+            let containsAllRules = true;
+            for (const rule of rules) {
+                if (!word.includes(rule.before)) {
+                    containsAllRules = false;
+                    break;
+                }
+            }
+            if (!containsAllRules) continue; // 含まれていなければスキップ
+
+            // 条件2: 文字を変換する（複数のルールを同時に適用）
+            let newWord = "";
+            for (let i = 0; i < word.length; i++) {
+                const char = word[i];
+                // 現在の文字が変換対象かどうか探す
+                const matchingRule = rules.find(r => r.before === char);
+                // 変換対象なら変換後の文字を、違うならそのままの文字を追加
+                newWord += matchingRule ? matchingRule.after : char;
+            }
+
+            // 条件3: 変換によって文字が変化しており、かつ変換後の単語が辞書に存在するか確認
+            if (newWord !== word && dictionarySet.has(newWord)) {
+                results.push(`${word} → ${newWord}`);
+            }
+        }
+
+        // 結果の表示
+        const resultsDiv = document.getElementById('results');
+        if (results.length > 0) {
+            resultsDiv.innerHTML = results.join(' 、 ');
+        } else {
+            resultsDiv.innerHTML = '条件に一致する単語は見つかりませんでした。';
+        }
+    }
+</script>
+
+</body>
+</html>
