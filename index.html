@@ -127,17 +127,25 @@
             // 同じ階層にある buta014.dic を読み込む
             const response = await fetch('buta014.dic');
             if (!response.ok) throw new Error('Network response was not ok');
-            const text = await response.text();
+
+            // text()ではなく、一度バイナリデータ(ArrayBuffer)として読み込む
+            const buffer = await response.arrayBuffer();
+            
+            // Shift_JISとしてテキストに変換する（文字化けが直らない場合は 'utf-8' や 'euc-jp' を試してください）
+            const decoder = new TextDecoder('shift_jis');
+            const text = decoder.decode(buffer);
             
             // 改行で分割し、空行を除去して配列とSetを作成
             dictionaryWords = text.split(/\r?\n/).map(word => word.trim()).filter(word => word.length > 0);
             dictionarySet = new Set(dictionaryWords);
             
             isDictLoaded = true;
-            document.getElementById('status').innerText = `辞書の読み込みが完了しました（収録単語数: ${dictionaryWords.length.toLocaleString()}語）`;
+
+            const sampleWords = dictionaryWords.slice(0, 2).join(', ');
+            document.getElementById('status').innerText = `辞書の読み込みが完了しました）`;
             document.getElementById('status').style.color = '#28a745';
         } catch (error) {
-            document.getElementById('status').innerText = '辞書ファイルの読み込みに失敗しました。「buta014.dic」が同じフォルダにあるか確認してください。ローカルで開いている場合は、GitHub Pages等のサーバー環境で実行してください。';
+            document.getElementById('status').innerText = '辞書ファイルの読み込みに失敗しました。（ローカルで開いている場合は、GitHub Pages等のサーバー環境で実行してください。）';
             document.getElementById('status').style.color = '#dc3545';
             console.error('Error loading dictionary:', error);
         }
