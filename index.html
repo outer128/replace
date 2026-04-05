@@ -72,7 +72,9 @@
             background-color: #c82333;
         }
         .controls {
-            text-align: center;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
             margin-bottom: 20px;
         }
         #status {
@@ -108,7 +110,7 @@
     </div>
 
     <div class="controls">
-        <button class="btn btn-add" onclick="addRule()">変換を追加</button><br>
+        <button class="btn btn-add" onclick="addRule()">変換を追加</button>
         <button class="btn" onclick="searchWords()">検索</button>
     </div>
 
@@ -124,14 +126,11 @@
     // 辞書ファイルの読み込み処理
     async function loadDictionary() {
         try {
-            // 同じ階層にある buta014.dic を読み込む
             const response = await fetch('buta014.dic');
             if (!response.ok) throw new Error('Network response was not ok');
 
-            // text()ではなく、一度バイナリデータ(ArrayBuffer)として読み込む
             const buffer = await response.arrayBuffer();
             
-            // Shift_JISとしてテキストに変換する（文字化けが直らない場合は 'utf-8' や 'euc-jp' を試してください）
             const decoder = new TextDecoder('shift_jis');
             const text = decoder.decode(buffer);
             
@@ -142,7 +141,7 @@
             isDictLoaded = true;
 
             const sampleWords = dictionaryWords.slice(0, 2).join(', ');
-            document.getElementById('status').innerText = `辞書の読み込みが完了しました）`;
+            document.getElementById('status').innerText = `辞書の読み込みが完了しました`;
             document.getElementById('status').style.color = '#28a745';
         } catch (error) {
             document.getElementById('status').innerText = '辞書ファイルの読み込みに失敗しました。（ローカルで開いている場合は、GitHub Pages等のサーバー環境で実行してください。）';
@@ -160,9 +159,9 @@
         const ruleDiv = document.createElement('div');
         ruleDiv.className = 'rule';
         ruleDiv.innerHTML = `
-            <input type="text" maxlength="1" class="before-char" placeholder="さ">
+            <input type="text" maxlength="1" class="before-char" placeholder="あ">
             <span>→</span>
-            <input type="text" maxlength="1" class="after-char" placeholder="た">
+            <input type="text" maxlength="1" class="after-char" placeholder="か">
             <button class="btn btn-remove" onclick="this.parentElement.remove()">削除</button>
         `;
         container.appendChild(ruleDiv);
@@ -225,7 +224,7 @@
         // 結果の表示
         const resultsDiv = document.getElementById('results');
         if (results.length > 0) {
-            resultsDiv.innerHTML = results.join(' 、 ');
+            resultsDiv.innerHTML = '・' + results.join('<br>・');
         } else {
             resultsDiv.innerHTML = '条件に一致する単語は見つかりませんでした。';
         }
