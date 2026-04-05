@@ -26,13 +26,17 @@
         }
         .rule-container {
             margin-bottom: 20px;
-            text-align: center;
         }
         .rule {
-            display: flex;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
             margin-bottom: 10px;
+            gap: 10px;
+        }
+        .rule-inputs {
+            display: flex;
+            align-items: center;
             gap: 10px;
         }
         .rule input {
@@ -42,6 +46,10 @@
             text-align: center;
             border: 1px solid #ccc;
             border-radius: 4px;
+        }
+        .rule-action {
+            display: flex;
+            justify-content: flex-start;
         }
         .btn {
             padding: 10px 20px;
@@ -65,8 +73,9 @@
         }
         .btn-remove {
             background-color: #dc3545;
-            padding: 8px 12px;
-            font-size: 0.9em;
+            padding: 5px 10px;
+            font-size: 0.8em;
+            margin-left: 5px;
         }
         .btn-remove:hover {
             background-color: #c82333;
@@ -103,10 +112,12 @@
 
     <div class="rule-container" id="rule-container">
         <div class="rule">
-            <input type="text" maxlength="1" class="before-char" placeholder="あ">
-            <span>→</span>
-            <input type="text" maxlength="1" class="after-char" placeholder="か">
-        </div>
+            <div class="spacer"></div> <div class="rule-inputs">
+                <input type="text" maxlength="1" class="before-char" placeholder="あ">
+                <span>→</span>
+                <input type="text" maxlength="1" class="after-char" placeholder="か">
+            </div>
+            <div class="rule-action"></div> </div>
     </div>
 
     <div class="controls">
@@ -159,10 +170,15 @@
         const ruleDiv = document.createElement('div');
         ruleDiv.className = 'rule';
         ruleDiv.innerHTML = `
-            <input type="text" maxlength="1" class="before-char" placeholder="あ">
-            <span>→</span>
-            <input type="text" maxlength="1" class="after-char" placeholder="か">
-            <button class="btn btn-remove" onclick="this.parentElement.remove()">削除</button>
+            <div class="spacer"></div>
+            <div class="rule-inputs">
+                <input type="text" maxlength="1" class="before-char" placeholder="あ">
+                <span>→</span>
+                <input type="text" maxlength="1" class="after-char" placeholder="か">
+            </div>
+            <div class="rule-action">
+                <button class="btn btn-remove" onclick="this.closest('.rule').remove()">削除</button>
+            </div>
         `;
         container.appendChild(ruleDiv);
     }
